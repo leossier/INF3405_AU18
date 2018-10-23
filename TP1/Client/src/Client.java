@@ -44,17 +44,23 @@ public class Client {
              */
             public void actionPerformed(ActionEvent e) {
                 out.println(dataField.getText());
-                   String response;
-                try {
-                    response = in.readLine();
-                    if (response == null || response.equals("")) {
-                          System.exit(0);
-                      }
-                } catch (IOException ex) {
-                       response = "Error: " + ex;
-                }
-                messageArea.append(response + "\n");
-                dataField.selectAll();
+                String response;
+                String output = "";
+                    try {
+                        response = in.readLine();
+                        if (response == null || response.equals("")) {
+                            System.exit(0);
+                        }
+
+                        while(!response.equals("#End")) {
+                            output += response + "\n";
+                            response = in.readLine();
+                        }
+                    } catch (IOException ex) {
+                        response = "Error: " + ex;
+                    }
+                    messageArea.append(output);
+                    dataField.selectAll();
             }
         });
     }

@@ -71,13 +71,13 @@ public class Server {
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
-                System.out.println("Welcome to the Storage Drive. Enter \"Exit\" to leave\n");
-                System.out.println("Path: " + this.path);
+                out.println("Welcome to the Storage Drive. Enter \"Exit\" to leave");
+                out.println("Path: " + this.path + "\n");
                 String returnMessage = "";
 
                 while(true) {
                     String input = in.readLine();
-                    if (input == "Exit") {
+                    if (input == null || input.equals("Exit")) {
                         break;
                     }
                     returnMessage = testCommand(input);
@@ -101,44 +101,45 @@ public class Server {
         String[] parsedCommand = command.split(" ");
 
         if (parsedCommand.length > 2) {
-            return "Command format with too many arguments";
+            return "Command format with too many arguments\n#End";
         } else if (parsedCommand.length < 2) {
-            return "Command format with too few arguments";
+            return "Command format with too few arguments\n#End";
         }
 
-        if (parsedCommand[0] == "cd") {
+        System.out.println(parsedCommand[0]);
+        if (parsedCommand[0].equals("cd")) {
             return command_cd(parsedCommand[1]);
-        } else if (parsedCommand[0] == "ls") {
+        } else if (parsedCommand[0].equals("ls")) {
             return command_ls(parsedCommand[1]);
-        } else if (parsedCommand[0] == "mkdir") {
+        } else if (parsedCommand[0].equals("mkdir")) {
             return commmand_mkdir(parsedCommand[1]);
-        } else if (parsedCommand[0] == "upload") {
+        } else if (parsedCommand[0].equals("upload")) {
             return command_upload(parsedCommand[1]);
-        } else if (parsedCommand[0] == "download") {
+        } else if (parsedCommand[0].equals("download")) {
             return command_download(parsedCommand[1]);
         } else {
-            return "Command not recognized";
+            return "Command not recognized\n#End";
         }
     }
 
     private static String command_cd(String command) {
-        return "cd";
+        return "cd\n#End";
     }
 
     private static String command_ls(String command) {
-        return "ls";
+        return "ls\n#End";
     }
 
     private static String commmand_mkdir(String command) {
-        return "mkdir";
+        return "mkdir\n#End";
     }
 
     private static String command_upload(String command) {
-        return "upload";
+        return "upload\n#End";
     }
 
     private static String command_download(String command) {
-        return "download";
+        return "download\n#End";
     }
 
     private static String testAddress(String serverAddress) {
