@@ -1,14 +1,19 @@
 
-import java.io.BufferedReader;
+import java.io.*;
+/*import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;*/
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Paths;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.util.*;
+import java.text.*;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -57,31 +62,39 @@ public class Server {
         private Socket socket;
         private int clientNumber;
         private Path path;
+        private BufferedReader in;
+        private PrintWriter out;
 
         public StorageDrive(Socket socket, int clientNumber) {
             this.socket = socket;
             this.clientNumber = clientNumber;
             this.path = Paths.get("");
             this.path = this.path.toAbsolutePath();
+
+            try {
+                this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                this.out = new PrintWriter(socket.getOutputStream(), true);
+            } catch (IOException e) {
+                System.out.println("Error setting up in/out: " + e);
+            }
+
+            System.out.println(this.path.toString());
             System.out.println("New connection with client# " + clientNumber + " at " + socket);
         }
 
         public void run() {
             try {
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                //BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                //PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
                 out.println("Welcome to the Storage Drive. Enter \"Exit\" to leave");
-                out.println("Path: " + this.path + "\n");
-                String returnMessage = "";
 
                 while(true) {
                     String input = in.readLine();
                     if (input == null || input.equals("Exit")) {
                         break;
                     }
-                    returnMessage = testCommand(input);
-                    out.println(returnMessage);
+                    testCommand(input);
                 }
 
             } catch (IOException e) {
@@ -90,56 +103,82 @@ public class Server {
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    System.out.println("Couldn't close a socket, what's going on?");
+                    System.out.println("Error: Couldn't close a socket");
                 }
                 System.out.println("Connection with client# " + clientNumber + " closed");
             }
         }
-    }
 
-    private static String testCommand(String command) {
-        String[] parsedCommand = command.split(" ");
+        private void testCommand(String command) {
+            String[] parsedCommand = command.split(" ");
+            Date now = new Date();
+            SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd '@' HH:mm:ss");
+            String client = socket.getRemoteSocketAddress().toString();
+            System.out.println("[" + client + " - " + ft.format(now) + "]:" + command + "\n");
 
-        if (parsedCommand.length > 2) {
-            return "Command format with too many arguments\n#End";
-        } else if (parsedCommand.length < 2) {
-            return "Command format with too few arguments\n#End";
+            if (parsedCommand[0].equals("cd")) {
+                command_cd(parsedCommand[1]);
+            } else if (parsedCommand[0].equals("ls")) {
+                command_ls(parsedCommand[1]);
+            } else if (parsedCommand[0].equals("mkdir")) {
+                commmand_mkdir(parsedCommand[1]);
+            } else if (parsedCommand[0].equals("upload")) {
+                command_upload(parsedCommand[1]);
+            } else if (parsedCommand[0].equals("download")) {
+                command_download(parsedCommand[1]);
+            } else {
+                System.out.println("Error: Received an unrecognized command: " + command);
+            }
         }
 
-        System.out.println(parsedCommand[0]);
-        if (parsedCommand[0].equals("cd")) {
-            return command_cd(parsedCommand[1]);
-        } else if (parsedCommand[0].equals("ls")) {
-            return command_ls(parsedCommand[1]);
-        } else if (parsedCommand[0].equals("mkdir")) {
-            return commmand_mkdir(parsedCommand[1]);
-        } else if (parsedCommand[0].equals("upload")) {
-            return command_upload(parsedCommand[1]);
-        } else if (parsedCommand[0].equals("download")) {
-            return command_download(parsedCommand[1]);
-        } else {
-            return "Command not recognized\n#End";
+        private void command_cd(String argument) {
+            String oldPath = path.toString();
+            //Temporaray values
+            String newPath = oldPath;
+            Path testPath = path;
+
+            if (argument.equals("..")) {
+                int endIndex = oldPath.lastIndexOf("\\");
+                if (endIndex == 2) {
+                    out.println("Impossible de remonter plus loins dans les dossiers");
+                    return;
+                } else {
+                    newPath = oldPath.substring(0, endIndex);
+                    testPath = Paths.get(newPath);
+                }
+            } else {
+                newPath = oldPath + "\\" + argument;
+                testPath = Paths.get(newPath);
+            }
+
+            if (Files.exists(testPath)) {
+                path = testPath;
+                out.println("Vous etes dans le dossier " + newPath);
+            } else {
+                out.println("Dossier inexistant");
+            }
         }
-    }
 
-    private static String command_cd(String command) {
-        return "cd\n#End";
-    }
+        private void command_ls(String argument) {
 
-    private static String command_ls(String command) {
-        return "ls\n#End";
-    }
+        }
 
-    private static String commmand_mkdir(String command) {
-        return "mkdir\n#End";
-    }
+        private void commmand_mkdir(String argument) {
+            Path newFolder = Paths.get(path.toString + "\\" + argument);
+            if (Files.exists(newFolder)) {
 
-    private static String command_upload(String command) {
-        return "upload\n#End";
-    }
+            } else {
+                
+            }
+        }
 
-    private static String command_download(String command) {
-        return "download\n#End";
+        private void command_upload(String argument) {
+
+        }
+
+        private void command_download(String argument) {
+
+        }
     }
 
     private static String testAddress(String serverAddress) {

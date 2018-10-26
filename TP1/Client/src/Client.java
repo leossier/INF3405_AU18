@@ -18,7 +18,7 @@ public class Client {
     private PrintWriter out;
     private JFrame frame = new JFrame("Capitalize Client");
     private JTextField dataField = new JTextField(40);
-    private JTextArea messageArea = new JTextArea(8, 60);
+    private JTextArea messageArea = new JTextArea(40, 60);
 
     /**
      * Constructs the client by laying out the GUI and registering a
@@ -43,26 +43,88 @@ public class Client {
              * streams and windows.
              */
             public void actionPerformed(ActionEvent e) {
-                out.println(dataField.getText());
-                String response;
-                String output = "";
-                    try {
-                        response = in.readLine();
-                        if (response == null || response.equals("")) {
-                            System.exit(0);
-                        }
+                String command = dataField.getText();
+                if (command.equals("Exit")) {
+                    out.println(command);
 
-                        while(!response.equals("#End")) {
-                            output += response + "\n";
-                            response = in.readLine();
-                        }
-                    } catch (IOException ex) {
-                        response = "Error: " + ex;
+                    System.exit(0);
+                }
+                messageArea.append("\n" + command + "\n");
+                testCommand(command);
+                dataField.selectAll();
+
+                    /*response = in.readLine();
+                    if (response == null || response.equals("")) {
+                        System.exit(0);
                     }
-                    messageArea.append(output);
-                    dataField.selectAll();
+
+                    while(!response.equals("#End")) {
+                        output += response + "\n";
+                        response = in.readLine();
+                    }*/
             }
         });
+    }
+
+    private void testCommand(String command) {
+        String[] parsedCommand = command.split(" ");
+
+        if (parsedCommand.length > 2) {
+            messageArea.append("Command format with too many arguments\n");
+            return;
+        }
+
+        if (parsedCommand[0].equals("ls")) {
+            command_ls(command);
+        } else if (parsedCommand[0].equals("cd")) {
+            command_cd(command);
+        } else if (parsedCommand[0].equals("mkdir")) {
+            command_mkdir(command);
+        } else if (parsedCommand[0].equals("upload")) {
+            command_upload(command);
+        } else if (parsedCommand[0].equals("download")) {
+            command_download(command);
+        } else {
+            messageArea.append("Command not recognized\n");
+            return;
+        }
+    }
+
+    private void command_cd(String command) {
+        try {
+            out.println(command);
+            String response = in.readLine();
+            System.out.println(response);
+            messageArea.append(response + "\n");
+        } catch (IOException ex) {
+            messageArea.append("Error: " + ex);
+        }
+    }
+
+    private void command_ls(String command) {
+        try {
+            out.println(command);
+
+            String response = in.readLine();
+            while(!response.equals("#End")) {
+                messageArea.append(response + "\n");
+                response = in.readLine();
+            }
+        } catch (IOException ex) {
+            messageArea.append("Error: " + ex);
+        }
+    }
+
+    private void command_mkdir(String command) {
+
+    }
+
+    private void command_upload(String command) {
+
+    }
+
+    private void command_download(String command) {
+
     }
 
     /**
@@ -82,16 +144,16 @@ public class Client {
         Socket socket;
         socket = new Socket(serverAddress, port);
 
-        System.out.format("The capitalization server is running on %s:%d%n", serverAddress, port);
+        System.out.format("The Storage Drive server is running on %s:%d%n", serverAddress, port);
 
         in = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
 
         // Consume the initial welcoming messages from the server
-        for (int i = 0; i < 3; i++) {
+        //for (int i = 0; i < 3; i++) {
             messageArea.append(in.readLine() + "\n");
-        }
+        //}
     }
 
     /**
