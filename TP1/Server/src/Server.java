@@ -68,8 +68,7 @@ public class Server {
         public StorageDrive(Socket socket, int clientNumber) {
             this.socket = socket;
             this.clientNumber = clientNumber;
-            this.path = Paths.get("");
-            this.path = this.path.toAbsolutePath();
+            this.path = Paths.get("").toAbsolutePath();
 
             try {
                 this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -194,7 +193,51 @@ public class Server {
         }
 
         private void command_upload(String argument) {
+            InputStream input = null;
+            OutputStream output = null;
+            String filePath = path.toString() + "\\" + argument;
 
+
+            try {
+                input = socket.getInputStream();
+            } catch (IOException ex) {
+                System.out.println("Can't get input stream");
+            }
+
+            if (Files.notExists(Paths.get(filePath))) {
+                try {
+                    Files.createFile(Paths.get(filePath));
+                } catch (Exception ex) {
+                    System.out.println("Create File exception: " + ex);
+                }
+            }
+
+            try {
+                output = new FileOutputStream(filePath);
+            } catch (IOException ex) {
+                System.out.println("Can't get input stream");
+            }
+
+            try {
+                byte[] bytes = new byte[8];
+                int count;
+                while ((count = input.read(bytes)) > 0) {
+                    output.write(bytes, 0, count);
+                    System.out.println(count + "\n");
+                }
+            } catch (IOException ex) {
+                System.out.println("Error when receiving file: " + ex);
+            }
+            System.out.println("Milestone 1");
+            try {
+                output.close();
+                input.close();
+            } catch (IOException ex) {
+                System.out.println("Error closing upload streams: " + ex);
+            }
+            System.out.println("Milestone 2");
+            out.println("Le fichier " + argument + " a bien ete televerse.");
+            System.out.println("Milestone 3");
         }
 
         private void command_download(String argument) {

@@ -1,21 +1,24 @@
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
+import java.io.*;
+/*import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.PrintWriter;*/
 import java.net.Socket;
-
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import java.nio.file.*;
+import java.util.*;
 
 public class Client {
     private BufferedReader in;
     private PrintWriter out;
+    private OutputStream outStream;
     private JFrame frame = new JFrame("Capitalize Client");
     private JTextField dataField = new JTextField(40);
     private JTextArea messageArea = new JTextArea(40, 60);
@@ -126,6 +129,43 @@ public class Client {
     }
 
     private void command_upload(String command) {
+        String[] parsedCommand = command.split(" ");
+        Path path = Paths.get("").toAbsolutePath();
+        path = Paths.get(path.toString() + "\\" + parsedCommand[1]);
+        System.out.println(path.toString());
+
+        if (!Files.exists(path)) {
+            messageArea.append("Le fichier n'a pas ete trouve\n");
+            return;
+        }
+
+        out.println(command);
+        File file = new File(path.toString());
+        long length = file.length();
+        byte[] bytes = new byte[16 * 1024];
+        InputStream input = null;
+
+        try {
+            input = new FileInputStream(file);
+        } catch (FileNotFoundException ex) {
+            System.out.println("Error upload file not found: " + ex);
+        }
+        int count;
+
+        try {
+            while((count = input.read(bytes)) > 0) {
+                outStream.write(bytes, 0, count);
+            }
+            System.out.println("Milestone 1");
+            String response = in.readLine();
+            System.out.println("Milestone 2");
+            messageArea.append(response + "\n");
+            System.out.println("Milestone 3");
+            input.close();
+            System.out.println("Milestone 4");
+        } catch (IOException ex) {
+            System.out.println("Error upload IO: " + ex);
+        }
 
     }
 
@@ -155,6 +195,7 @@ public class Client {
         in = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
+        outStream = socket.getOutputStream();
 
         // Consume the initial welcoming messages from the server
         //for (int i = 0; i < 3; i++) {
