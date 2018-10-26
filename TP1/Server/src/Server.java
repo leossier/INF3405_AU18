@@ -119,7 +119,7 @@ public class Server {
             if (parsedCommand[0].equals("cd")) {
                 command_cd(parsedCommand[1]);
             } else if (parsedCommand[0].equals("ls")) {
-                command_ls(parsedCommand[1]);
+                command_ls();
             } else if (parsedCommand[0].equals("mkdir")) {
                 commmand_mkdir(parsedCommand[1]);
             } else if (parsedCommand[0].equals("upload")) {
@@ -159,16 +159,37 @@ public class Server {
             }
         }
 
-        private void command_ls(String argument) {
+        private void command_ls() {
+            File directory = new File(path.toString());
+            File[] fileList = directory.listFiles();
 
+            for (File file: fileList) {
+                if (file.isDirectory()) {
+                    out.println("[Folder] " + file.getName());
+                }
+            }
+
+            for (File file: fileList) {
+                if (file.isFile()) {
+                    out.println("[File] " + file.getName());
+                }
+            }
+
+            out.println("#End");
         }
 
         private void commmand_mkdir(String argument) {
-            Path newFolder = Paths.get(path.toString + "\\" + argument);
+            Path newFolder = Paths.get(path.toString() + "\\" + argument);
             if (Files.exists(newFolder)) {
-
+                out.println("Dossier deja existant");
             } else {
-                
+                try {
+                    Files.createDirectory(newFolder);
+                    out.println("Le dossier " + argument + " a ete cree.");
+                } catch (IOException ex) {
+                    System.out.println("Error creating directory: " + ex);
+                    out.println("Erreur de creation de dossier");
+                }
             }
         }
 

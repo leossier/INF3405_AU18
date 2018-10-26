@@ -45,6 +45,7 @@ public class Client {
             public void actionPerformed(ActionEvent e) {
                 String command = dataField.getText();
                 if (command.equals("Exit")) {
+                    //TODO Afficher message Exit -> bloquer input? possibl reconnect?
                     out.println(command);
 
                     System.exit(0);
@@ -94,7 +95,6 @@ public class Client {
         try {
             out.println(command);
             String response = in.readLine();
-            System.out.println(response);
             messageArea.append(response + "\n");
         } catch (IOException ex) {
             messageArea.append("Error: " + ex);
@@ -116,7 +116,13 @@ public class Client {
     }
 
     private void command_mkdir(String command) {
-
+        try {
+            out.println(command);
+            String response = in.readLine();
+            messageArea.append(response + "\n");
+        } catch (IOException ex) {
+            messageArea.append("Error: " + ex);
+        }
     }
 
     private void command_upload(String command) {
