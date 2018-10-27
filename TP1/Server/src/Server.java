@@ -64,6 +64,8 @@ public class Server {
         private Path path;
         private BufferedReader in;
         private PrintWriter out;
+        private OutputStream outStream;
+        private InputStream inStream;
 
         public StorageDrive(Socket socket, int clientNumber) {
             this.socket = socket;
@@ -73,6 +75,8 @@ public class Server {
             try {
                 this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 this.out = new PrintWriter(socket.getOutputStream(), true);
+                this.outStream = socket.getOutputStream();
+                this.inStream = socket.getInputStream();
             } catch (IOException e) {
                 System.out.println("Error setting up in/out: " + e);
             }
@@ -193,15 +197,10 @@ public class Server {
         }
 
         private void command_upload(String argument) {
-            int fileSize = 200;
-            /*try {
-                String response = in.readLine();
-                fileSize = (int)(Double.parseDouble(response) * 1.1); //Slightly larger for safety
-            } catch (IOException ex) {
-                System.out.println("Error catch file size: " + ex);
-            }*/
+            int fileSize = 16777216;    //Arbitrary number. Passing the size caused problems
+
             int bytesRead;
-            int current = 0;
+            int current = 0;    //TODO Test remove
             FileOutputStream fOutput = null;
             BufferedOutputStream bOutput = null;
 
@@ -209,22 +208,19 @@ public class Server {
 
             try {
                 byte[] myByteArray = new byte[fileSize];
-                InputStream input = socket.getInputStream();
+
                 fOutput = new FileOutputStream(filePath);
                 bOutput = new BufferedOutputStream(fOutput);
 
-                bytesRead = input.read(myByteArray, 0, myByteArray.length);
+                bytesRead = inStream.read(myByteArray, 0, myByteArray.length);
                 current = bytesRead;
 
-                System.out.println("write");
                 bOutput.write(myByteArray, 0, current);
-                System.out.println("flush");
                 bOutput.flush();
 
             } catch (IOException ex) {
                 System.out.println("Exception IO upload: " + ex);
             } finally {
-                System.out.println("finally");
                 try {
                     if (fOutput != null)   fOutput.close();
                     if (bOutput != null)   bOutput.close();
@@ -232,59 +228,43 @@ public class Server {
                     System.out.println("Exception IO close upload: " + ex);
                 }
             }
-            System.out.println("end message");
-            out.println("Le fichier " + argument + " a bien ete telecharge.");
-        }
-
-        private void command_upload2(String argument) {
-            InputStream input = null;
-            OutputStream output = null;
-            String filePath = path.toString() + "\\" + argument;
-
-
-            try {
-                input = socket.getInputStream();
-            } catch (IOException ex) {
-                System.out.println("Can't get input stream");
-            }
-
-            if (Files.notExists(Paths.get(filePath))) {
-                try {
-                    Files.createFile(Paths.get(filePath));
-                } catch (Exception ex) {
-                    System.out.println("Create File exception: " + ex);
-                }
-            }
-
-            try {
-                output = new FileOutputStream(filePath);
-            } catch (IOException ex) {
-                System.out.println("Can't get input stream");
-            }
-
-            try {
-                byte[] bytes = new byte[8];
-                int count;
-                while ((count = input.read(bytes)) > -1) {
-                    output.write(bytes, 0, count);
-                    System.out.println("While: " + count + "\n");
-                }
-            } catch (IOException ex) {
-                System.out.println("Error when receiving file: " + ex);
-            }
-            System.out.println("Milestone 1");
-            try {
-                output.close();
-                input.close();
-            } catch (IOException ex) {
-                System.out.println("Error closing upload streams: " + ex);
-            }
-            System.out.println("Milestone 2");
             out.println("Le fichier " + argument + " a bien ete televerse.");
-            System.out.println("Milestone 3");
         }
 
         private void command_download(String argument) {
+            Path filePath = Paths.get(path + "\\" + argument);
+            if (!Files.exists(path)) {
+                //Contact the Client ton inform no file is comming
+                out.println("NotFound");
+                return;
+            }
+            //Inform the client the file is comming
+            out.println("Found");
+
+            FileInputStream fInput = null;
+            BufferedInputStream bInput = null;
+
+            try {
+                File file = new File(filePath.toString());
+                byte[] myByteArray = new byte[(int)file.length()];
+                fInput = new FileInputStream(file);
+                bInput = new BufferedInputStream(fInput);
+                bInput.read(myByteArray, 0, myByteArray.length);
+                outStream.write(myByteArray, 0, myByteArray.length);
+                outStream.flush();
+
+            } catch (IOException ex) {
+                System.out.println("Exception IO download: " + ex);
+            } finally {
+                try {
+                    if (bInput != null) bInput.close();
+                } catch (IOException ex) {
+                    System.out.println("Exception IO close download: " + ex);
+                }
+            }
+
+            System.out.println("final message");
+            //out.println("Le fichier " + argument + " a bien ete telecharge.");
 
         }
     }

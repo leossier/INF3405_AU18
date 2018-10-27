@@ -19,6 +19,7 @@ public class Client {
     private BufferedReader in;
     private PrintWriter out;
     private OutputStream outStream;
+    private InputStream inStream;
     private JFrame frame = new JFrame("Capitalize Client");
     private JTextField dataField = new JTextField(40);
     private JTextArea messageArea = new JTextArea(40, 60);
@@ -146,7 +147,6 @@ public class Client {
         try {
             File file = new File (path.toString());
             byte[] myByteArray  = new byte[(int)file.length()];
-            //out.println(file.length());
             fInput = new FileInputStream(file);
             bInput = new BufferedInputStream(fInput);
             bInput.read(myByteArray, 0, myByteArray.length);
@@ -164,57 +164,65 @@ public class Client {
         }
 
         try {
-            System.out.println("end message");
             String response = in.readLine();
             messageArea.append(response + "\n");
         } catch (IOException ex) {
             System.out.println("Exception read Upload: " + ex);
         }
-
-    }
-
-    private void command_upload2(String command) {
-        String[] parsedCommand = command.split(" ");
-        Path path = Paths.get("").toAbsolutePath();
-        path = Paths.get(path.toString() + "\\" + parsedCommand[1]);
-        System.out.println(path.toString());
-
-        if (!Files.exists(path)) {
-            messageArea.append("Le fichier n'a pas ete trouve\n");
-            return;
-        }
-
-        out.println(command);
-        File file = new File(path.toString());
-        long length = file.length();
-        byte[] bytes = new byte[16 * 1024];
-        InputStream input = null;
-
-        try {
-            input = new FileInputStream(file);
-        } catch (FileNotFoundException ex) {
-            System.out.println("Error upload file not found: " + ex);
-        }
-        int count;
-
-        try {
-            while((count = input.read(bytes)) > 0) {
-                outStream.write(bytes, 0, count);
-            }
-            System.out.println("Milestone 1");
-            String response = in.readLine();
-            System.out.println("Milestone 2");
-            messageArea.append(response + "\n");
-            System.out.println("Milestone 3");
-            input.close();
-            System.out.println("Milestone 4");
-        } catch (IOException ex) {
-            System.out.println("Error upload IO: " + ex);
-        }
-
     }
 
     private void command_download(String command) {
+        int fileSize = 16777216;
+
+        int bytesRead;
+        int current = 0;
+        FileOutputStream fOutput = null;
+        BufferedOutputStream bOutput = null;
+
+        out.println(command);
+
+        try {
+            String response = in.readLine();
+            if (response.equals("NotFound")) {
+                messageArea.append("File not found on the server.\n");
+                return;
+            }
+
+            String[] parsedCommand = command.split(" ");
+            Path path = Paths.get("").toAbsolutePath();
+            String filePath = path.toString() + "\\" + parsedCommand[1];
+
+            byte[] myByteArray = new byte[fileSize];
+
+            fOutput = new FileOutputStream(filePath);
+            bOutput = new BufferedOutputStream(fOutput);
+
+            bytesRead = inStream.read(myByteArray, 0, myByteArray.length);
+            current = bytesRead;
+
+            bOutput.write(myByteArray, 0, current);
+            bOutput.flush();
+
+        } catch (IOException ex) {
+            System.out.println("Excdption IO download: " + ex);
+        } finally {
+            try {
+                if (fOutput != null)    fOutput.close();
+                if (bOutput != null)    bOutput.close();
+            } catch (IOException ex) {
+                System.out.println("Exception IO close download: " + ex);
+            }
+        }
+
+        /*try {
+            System.out.println("final message");
+            String responseF = in.readLine();
+            System.out.println(responseF);
+            messageArea.append(responseF + "\n");
+        } catch (IOException ex) {
+            System.out.println("Error read download: " + ex);
+        }*/
+
 
     }
 
@@ -241,6 +249,7 @@ public class Client {
                 new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
         outStream = socket.getOutputStream();
+        inStream = socket.getInputStream();
 
         // Consume the initial welcoming messages from the server
         //for (int i = 0; i < 3; i++) {
