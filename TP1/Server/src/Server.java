@@ -291,20 +291,11 @@ public class Server {
                     return "Error: Port outside limit";
                 }
 
-
             } catch(Exception e) {
                 return "Invalid character in the address";
             }
 
             return "";
         }
-
     }
-
-    private static class Capitalizer extends Thread {
-
-    }
-
-
-
 }

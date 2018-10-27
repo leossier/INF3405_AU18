@@ -215,10 +215,25 @@ public class Client {
 
     @SuppressWarnings("resource")
     public void connectToServer() throws IOException {
+        String message = "";
+        Boolean CorrectAddress = false;
+        String fullAddress = "";
+        String[] parsedAddress;
+        //String serverAddress = JOptionPane.showInputDialog(frame,"Enter IP Address of the Server:","Welcome to the Capitalization Program",JOptionPane.QUESTION_MESSAGE);
+        //int port = 5000;
 
-        // Get the server address from a dialog box.
-        String serverAddress = JOptionPane.showInputDialog(frame,"Enter IP Address of the Server:","Welcome to the Capitalization Program",JOptionPane.QUESTION_MESSAGE);
-        int port = 5000;
+        while (!CorrectAddress) {
+            fullAddress = JOptionPane.showInputDialog(frame, "Entrer l'adresse IP et le Port du serveur:\n Format (Addresse:Port)\n" + message, "Welcome to the Storage Drive", JOptionPane.QUESTION_MESSAGE);
+            message = testAddress(fullAddress);
+            if (message == "") {
+                CorrectAddress = true;
+            }
+        }
+
+        parsedAddress = fullAddress.split(":");
+        String serverAddress = parsedAddress[0];
+        int port = Integer.parseInt(parsedAddress[1]);
+
 
         Socket socket;
         socket = new Socket(serverAddress, port);
@@ -234,7 +249,41 @@ public class Client {
         messageArea.append(in.readLine() + "\n");
 
     }
-    
+
+    private static String testAddress(String serverAddress) {
+        String[] addressPort;
+        String[] parsedAddress;
+        int temp = 0;
+
+        addressPort = serverAddress.split(":");
+        parsedAddress = addressPort[0].split("\\.");
+
+        if(addressPort.length != 2) {
+            return "Error: No identified port (:)";
+        } else if(parsedAddress.length != 4) {
+            return "Error: Wrong format address";
+        } else {
+            try{
+                for (int i = 0; i < 4; i++) {
+                    temp = Integer.parseInt(parsedAddress[i]);
+                    if (temp < 0 || temp > 255) {
+                        return "Error: Byte #" + (i + 1) + "Ouside limits";
+                    }
+                }
+
+                temp = Integer.parseInt(addressPort[1]);
+                if (temp < 5000 || temp > 5050) {
+                    return "Error: Port outside limit";
+                }
+
+            } catch(Exception e) {
+                return "Invalid character in the address";
+            }
+
+            return "";
+        }
+    }
+
      // Runs the client application.
     public static void main(String[] args) throws Exception {
         Client client = new Client();
