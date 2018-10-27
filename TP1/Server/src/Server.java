@@ -233,7 +233,7 @@ public class Server {
 
         private void command_download(String argument) {
             Path filePath = Paths.get(path + "\\" + argument);
-            if (!Files.exists(path)) {
+            if (!Files.exists(filePath)) {
                 //Contact the Client ton inform no file is comming
                 out.println("NotFound");
                 return;

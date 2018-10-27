@@ -77,7 +77,11 @@ public class Client {
         }
 
         if (parsedCommand[0].equals("ls")) {
-            command_ls(command);
+            if (parsedCommand.length == 2) {
+                messageArea.append("La commande \"ls\" ne prends pas de parametre\n");
+            } else {
+                command_ls(command);
+            }
         } else if (parsedCommand[0].equals("cd")) {
             command_cd(command);
         } else if (parsedCommand[0].equals("mkdir")) {
