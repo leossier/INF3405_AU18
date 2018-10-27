@@ -23,6 +23,7 @@ public class Client {
     private JFrame frame = new JFrame("Capitalize Client");
     private JTextField dataField = new JTextField(40);
     private JTextArea messageArea = new JTextArea(40, 60);
+    private Boolean disconnected = false;
 
     /**
      * Constructs the client by laying out the GUI and registering a
@@ -48,25 +49,21 @@ public class Client {
              */
             public void actionPerformed(ActionEvent e) {
                 String command = dataField.getText();
-                if (command.equals("Exit")) {
-                    //TODO Afficher message Exit -> bloquer input? possibl reconnect?
-                    out.println(command);
-
-                    System.exit(0);
-                }
-                messageArea.append("\n" + command + "\n");
-                testCommand(command);
-                dataField.selectAll();
-
-                    /*response = in.readLine();
-                    if (response == null || response.equals("")) {
-                        System.exit(0);
+                if (disconnected) {
+                    messageArea.append("\nVous etes deconnecte du serveur\n");
+                    dataField.selectAll();
+                } else {
+                    if (command.equals("Exit")) {
+                        out.println(command);
+                        disconnected = true;
+                        messageArea.append("\nExit\nVous avez ete deconnecte avec succes.\n");
+                        dataField.selectAll();
+                    } else {
+                        messageArea.append("\n" + command + "\n");
+                        testCommand(command);
+                        dataField.selectAll();
                     }
-
-                    while(!response.equals("#End")) {
-                        output += response + "\n";
-                        response = in.readLine();
-                    }*/
+                }
             }
         });
     }
@@ -108,7 +105,6 @@ public class Client {
     private void command_ls(String command) {
         try {
             out.println(command);
-
             String response = in.readLine();
             while(!response.equals("#End")) {
                 messageArea.append(response + "\n");
@@ -173,7 +169,7 @@ public class Client {
 
     private void command_download(String command) {
         int fileSize = 16777216;
-
+        String[] parsedCommand = command.split(" ");
         int bytesRead;
         int current = 0;
         FileOutputStream fOutput = null;
@@ -188,7 +184,7 @@ public class Client {
                 return;
             }
 
-            String[] parsedCommand = command.split(" ");
+
             Path path = Paths.get("").toAbsolutePath();
             String filePath = path.toString() + "\\" + parsedCommand[1];
 
@@ -214,25 +210,9 @@ public class Client {
             }
         }
 
-        /*try {
-            System.out.println("final message");
-            String responseF = in.readLine();
-            System.out.println(responseF);
-            messageArea.append(responseF + "\n");
-        } catch (IOException ex) {
-            System.out.println("Error read download: " + ex);
-        }*/
-
-
+        messageArea.append("Le fichier " + parsedCommand[1] + " a bien ete telecharge\n");
     }
 
-    /**
-     * Implements the connection logic by prompting the end user for
-     * the server's IP address, connecting, setting up streams, and
-     * consuming the welcome messages from the server.  The Capitalizer
-     * protocol says that the server sends three lines of text to the
-     * client immediately after establishing a connection.
-     */
     @SuppressWarnings("resource")
     public void connectToServer() throws IOException {
 
@@ -251,15 +231,11 @@ public class Client {
         outStream = socket.getOutputStream();
         inStream = socket.getInputStream();
 
-        // Consume the initial welcoming messages from the server
-        //for (int i = 0; i < 3; i++) {
-            messageArea.append(in.readLine() + "\n");
-        //}
-    }
+        messageArea.append(in.readLine() + "\n");
 
-    /**
-     * Runs the client application.
-     */
+    }
+    
+     // Runs the client application.
     public static void main(String[] args) throws Exception {
         Client client = new Client();
         client.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

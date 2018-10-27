@@ -29,7 +29,7 @@ public class Server {
         int clientNumber = 0;
 
         while (!CorrectAddress) {
-            serverAddress = JOptionPane.showInputDialog(frame, "Enter IP Address and Port of the Server:\n Format (Address:Port)\n" + message, "Welcome to the Storage Drive", JOptionPane.QUESTION_MESSAGE);
+            serverAddress = JOptionPane.showInputDialog(frame, "Entrer l'adresse IP et le Port du serveur:\n Format (Addresse:Port)\n" + message, "Welcome to the Storage Drive", JOptionPane.QUESTION_MESSAGE);
             message = testAddress(serverAddress);
             if (message == "") {
                 CorrectAddress = true;
@@ -90,7 +90,7 @@ public class Server {
                 //BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 //PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
-                out.println("Welcome to the Storage Drive. Enter \"Exit\" to leave");
+                out.println("Bienvenue sur le Storage Drive. Entrez \"Exit\" pour deconnecter");
 
                 while(true) {
                     String input = in.readLine();
@@ -262,10 +262,6 @@ public class Server {
                     System.out.println("Exception IO close download: " + ex);
                 }
             }
-
-            System.out.println("final message");
-            //out.println("Le fichier " + argument + " a bien ete telecharge.");
-
         }
     }
 
