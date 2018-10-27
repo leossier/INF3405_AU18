@@ -132,6 +132,51 @@ public class Client {
         String[] parsedCommand = command.split(" ");
         Path path = Paths.get("").toAbsolutePath();
         path = Paths.get(path.toString() + "\\" + parsedCommand[1]);
+
+        if (!Files.exists(path)) {
+            messageArea.append("Le fichier n'a pas ete trouve\n");
+            return;
+        }
+
+        out.println(command);
+
+        FileInputStream fInput = null;
+        BufferedInputStream bInput = null;
+
+        try {
+            File file = new File (path.toString());
+            byte[] myByteArray  = new byte[(int)file.length()];
+            //out.println(file.length());
+            fInput = new FileInputStream(file);
+            bInput = new BufferedInputStream(fInput);
+            bInput.read(myByteArray, 0, myByteArray.length);
+            outStream.write(myByteArray, 0, myByteArray.length);
+            outStream.flush();
+
+        } catch (IOException ex) {
+            System.out.println("Exception IO upload: " + ex);
+        } finally {
+            try {
+                if (bInput != null) bInput.close();
+            } catch (IOException ex) {
+                System.out.println("Exception IO close upload: " + ex);
+            }
+        }
+
+        try {
+            System.out.println("end message");
+            String response = in.readLine();
+            messageArea.append(response + "\n");
+        } catch (IOException ex) {
+            System.out.println("Exception read Upload: " + ex);
+        }
+
+    }
+
+    private void command_upload2(String command) {
+        String[] parsedCommand = command.split(" ");
+        Path path = Paths.get("").toAbsolutePath();
+        path = Paths.get(path.toString() + "\\" + parsedCommand[1]);
         System.out.println(path.toString());
 
         if (!Files.exists(path)) {

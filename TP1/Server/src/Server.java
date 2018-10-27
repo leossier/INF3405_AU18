@@ -193,6 +193,50 @@ public class Server {
         }
 
         private void command_upload(String argument) {
+            int fileSize = 200;
+            /*try {
+                String response = in.readLine();
+                fileSize = (int)(Double.parseDouble(response) * 1.1); //Slightly larger for safety
+            } catch (IOException ex) {
+                System.out.println("Error catch file size: " + ex);
+            }*/
+            int bytesRead;
+            int current = 0;
+            FileOutputStream fOutput = null;
+            BufferedOutputStream bOutput = null;
+
+            String filePath = path.toString() + "\\" + argument;
+
+            try {
+                byte[] myByteArray = new byte[fileSize];
+                InputStream input = socket.getInputStream();
+                fOutput = new FileOutputStream(filePath);
+                bOutput = new BufferedOutputStream(fOutput);
+
+                bytesRead = input.read(myByteArray, 0, myByteArray.length);
+                current = bytesRead;
+
+                System.out.println("write");
+                bOutput.write(myByteArray, 0, current);
+                System.out.println("flush");
+                bOutput.flush();
+
+            } catch (IOException ex) {
+                System.out.println("Exception IO upload: " + ex);
+            } finally {
+                System.out.println("finally");
+                try {
+                    if (fOutput != null)   fOutput.close();
+                    if (bOutput != null)   bOutput.close();
+                } catch (IOException ex) {
+                    System.out.println("Exception IO close upload: " + ex);
+                }
+            }
+            System.out.println("end message");
+            out.println("Le fichier " + argument + " a bien ete telecharge.");
+        }
+
+        private void command_upload2(String argument) {
             InputStream input = null;
             OutputStream output = null;
             String filePath = path.toString() + "\\" + argument;
@@ -221,9 +265,9 @@ public class Server {
             try {
                 byte[] bytes = new byte[8];
                 int count;
-                while ((count = input.read(bytes)) > 0) {
+                while ((count = input.read(bytes)) > -1) {
                     output.write(bytes, 0, count);
-                    System.out.println(count + "\n");
+                    System.out.println("While: " + count + "\n");
                 }
             } catch (IOException ex) {
                 System.out.println("Error when receiving file: " + ex);
